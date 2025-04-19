@@ -42,6 +42,7 @@ import { UpdateUserComponent } from './update-user/update-user.component';
 import { TestCompsComponent } from './test-comps/test-comps.component';
 import { UnauthorizedComponent } from './unauthorized/unauthorized.component';
 import { AuthInterceptorProvider, HttpRequestInterceptor } from './services/http.interceptor';
+import { ClickOutsideDirective } from './click-outside.directive';
 
 @NgModule({
   imports: [
@@ -97,6 +98,7 @@ import { AuthInterceptorProvider, HttpRequestInterceptor } from './services/http
     UpdateUserComponent,
     TestCompsComponent,
     UnauthorizedComponent,
+    ClickOutsideDirective,
     
 
 
