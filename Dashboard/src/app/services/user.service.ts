@@ -89,32 +89,33 @@ export class UserService {
   login(loginRequest: { email: string, password: string }): Observable<any> {
     return this.http.post<any>(`${this.authUrl}/login`, loginRequest).pipe(
       tap((response: any) => {
-        // Debug the response
         console.log('Login response:', response);
-        
-        // Get role from both response body and token
+  
         const responseRole = response.role;
         const tokenRole = this.decodeToken(response.token)?.role;
-        
-        console.log('Response role:', responseRole);
-        console.log('Token role:', tokenRole);
-
-        // Use response role first, fallback to token role
         const finalRole = responseRole || tokenRole || RoleType.USER;
+  
         const user = this.mapToUser({
           ...response.user,
           role: finalRole
         });
-
+  
         this.storageService.saveAuthData({
           token: response.token,
           user: user
         });
-
+  
         this._isLoggedIn$.next(true);
         this.user = user;
       }),
-      catchError(this.handleError)
+      catchError(error => {
+        if (error.status === 403 && error.error?.includes("Account is banned")) {
+          return throwError(() => new Error("Your account is banned. Please contact the admin."));
+        } else if (error.status === 401) {
+          return throwError(() => new Error("Invalid credentials. Please check your email and password."));
+        }
+        return this.handleError(error);
+      })
     );
   }
 
@@ -298,4 +299,5 @@ export class UserService {
     console.error('An error occurred:', error);
     return throwError(() => new Error(error.message || 'Server error'));
   }
+  
 }

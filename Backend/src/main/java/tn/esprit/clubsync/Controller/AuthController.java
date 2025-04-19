@@ -110,6 +110,10 @@ public class AuthController {
                 return ResponseEntity.status(401).body("Invalid credentials: Incorrect password");
             }
 
+            if (user.isArchived()) {
+                return ResponseEntity.status(403).body("Account is banned. Contact admin.");
+            }
+
             UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
                     .username(user.getEmail())
                     .password(user.getPassword())
@@ -130,6 +134,7 @@ public class AuthController {
             return ResponseEntity.status(500).body("Internal Server Error: " + e.getMessage());
         }
     }
+
 
     @PostMapping("/google")
     public ResponseEntity<Object> loginWithGoogle(@RequestBody GoogleLoginRequest request) {
@@ -270,4 +275,42 @@ public class AuthController {
         helper.setText("Your verification code is: " + code);
         mailSender.send(message);
     }
+    @PutMapping("/ban/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> banUser(@PathVariable Long userId) {
+        Optional<User> optionalUser = userRepository.findById(userId);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(404).body("User not found");
+        }
+
+        User user = optionalUser.get();
+        if (user.isArchived()) {
+            return ResponseEntity.badRequest().body("User is already banned");
+        }
+
+        user.setArchived(true);
+        userRepository.save(user);
+
+        return ResponseEntity.ok("User banned successfully");
+    }
+
+    @PutMapping("/unban/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> unbanUser(@PathVariable Long userId) {
+        Optional<User> optionalUser = userRepository.findById(userId);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(404).body("User not found");
+        }
+
+        User user = optionalUser.get();
+        if (!user.isArchived()) {
+            return ResponseEntity.badRequest().body("User is not banned");
+        }
+
+        user.setArchived(false);
+        userRepository.save(user);
+
+        return ResponseEntity.ok("User unbanned successfully");
+    }
+
 }

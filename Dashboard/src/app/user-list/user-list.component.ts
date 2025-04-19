@@ -2,11 +2,9 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { UserService } from '../services/user.service';
 import { UserResponse } from '../models/user-response.model';
 import { Router } from '@angular/router';
-import { MatDialog } from '@angular/material/dialog'; // Import MatDialog
+import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from 'app/confirm-dialog/confirm-dialog.component';
-
-// Add the MatDialog to your constructor
-
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-user-list',
@@ -21,7 +19,7 @@ export class UserListComponent implements OnInit {
     private userService: UserService,
     private router: Router,
     private changeDetector: ChangeDetectorRef,
-    private dialog: MatDialog  // Inject MatDialog
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -48,38 +46,32 @@ export class UserListComponent implements OnInit {
     this.router.navigate(['/users/edit', userId]);
   }
 
-  onDelete(idUser: number): void {
-    if (!idUser) return;
+  onToggleBan(user: UserResponse): void {
+    const isBanned = user.archived;
+    
+    // Optimistically update the UI first
+    user.archived = !isBanned;
+    
+    // Call the appropriate service method
+    const action$ = isBanned 
+      ? this.userService.restoreUser(user.idUser) 
+      : this.userService.archiveUser(user.idUser);
   
-    // Create dialog data for confirmation
-    const dialogData = {
-      title: 'Confirmation of Deletion',
-      message: 'Are you sure you want to delete this user?'
-    };
-  
-    // Open confirmation dialog
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '350px',
-      data: dialogData
-    });
-  
-    // Handle the result after dialog is closed
-    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-      if (confirmed) {
-        this.userService.deleteUser(idUser).subscribe(
-          () => {
-            console.log('User supprimé avec succès');
-            this.loadUsers();
-          },
-          (error) => {
-            console.error('Erreur lors de la suppression du User:', error);
-          }
-        );
+    // Use type assertion if necessary to help TypeScript
+    (action$ as Observable<any>).subscribe({
+      next: () => {
+        console.log(`${isBanned ? 'Unbanned' : 'Banned'} user successfully.`);
+        // Refresh the list to ensure sync with server
+        this.loadUsers();
+      },
+      error: (error) => {
+        console.error(`Error during ${isBanned ? 'unban' : 'ban'}:`, error);
+        // Revert the change if there was an error
+        user.archived = isBanned;
+        this.changeDetector.detectChanges();
       }
     });
   }
-
-  // Fonction trackBy pour optimiser le rendu
   trackById(index: number, user: UserResponse): number {
     return user.idUser;
   }
