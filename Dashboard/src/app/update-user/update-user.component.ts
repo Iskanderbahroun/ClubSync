@@ -1,9 +1,9 @@
-// update-user.component.ts
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { UserService } from '../services/user.service';
 import { UserResponse } from '../models/user-response.model';
+
 
 @Component({
   selector: 'app-update-user',
@@ -17,17 +17,15 @@ export class UpdateUserComponent implements OnInit {
   hideConfirmPassword = true;
   imagePreview: string | ArrayBuffer | null = null;
   selectedFile: File | null = null;
-  userId: number;
+  userId: number | null = null;
   user: UserResponse | null = null;
 
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
-    private router: Router,
-    private route: ActivatedRoute
-  ) {
-    this.userId = Number(this.route.snapshot.paramMap.get('id'));
 
+    private router: Router
+  ) {
     this.updateForm = this.fb.group({
       nom: ['', Validators.required],
       prenom: ['', Validators.required],
@@ -43,12 +41,18 @@ export class UpdateUserComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadUserData();
+    this.userId = this.userService.getUserId();
+    if (this.userId !== null) {
+      this.loadUserData();
+    } else {
+      console.error('User ID not found in token');
+      // Optionnel : rediriger ou afficher une erreur
+    }
   }
 
   loadUserData(): void {
     this.isLoading = true;
-    this.userService.getUserById(this.userId).subscribe({
+    this.userService.getUserById(this.userId!).subscribe({
       next: (user) => {
         this.user = user;
         this.updateForm.patchValue({
@@ -60,11 +64,11 @@ export class UpdateUserComponent implements OnInit {
           numeroDeTelephone: user.numeroDeTelephone || 0,
           id_role: user.role || 0
         });
-        
+
         if (user.photoProfil) {
           this.imagePreview = user.photoProfil;
         }
-        
+
         this.isLoading = false;
       },
       error: (err) => {
@@ -85,17 +89,17 @@ export class UpdateUserComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.updateForm.invalid) {
+    if (this.updateForm.invalid || !this.userId) {
       return;
     }
 
     const formValue = this.updateForm.value;
-    
+
     const userRequest = {
       nom: formValue.nom,
       prenom: formValue.prenom,
       email: formValue.email,
-      password: formValue.password || undefined, // Only include if changed
+      password: formValue.password || undefined,
       dateNaissance: formValue.dateNaissance ? new Date(formValue.dateNaissance).toISOString() : null,
       sexe: formValue.sexe,
       numeroDeTelephone: Number(formValue.numeroDeTelephone),
@@ -103,7 +107,6 @@ export class UpdateUserComponent implements OnInit {
       photoProfil: this.user?.photoProfil || ''
     };
 
-    // Remove password if not provided
     if (!userRequest.password) {
       delete userRequest.password;
     }
@@ -122,7 +125,7 @@ export class UpdateUserComponent implements OnInit {
 
   private updateUser(user: any): void {
     this.isLoading = true;
-    this.userService.updateUser(this.userId, user).subscribe({
+    this.userService.updateUser(this.userId!, user).subscribe({
       next: () => {
         this.isLoading = false;
         this.router.navigate(['/user-list']);

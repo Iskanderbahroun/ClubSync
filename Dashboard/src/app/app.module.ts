@@ -1,7 +1,7 @@
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
 import { AppRoutingModule } from './app.routing';
 import { ComponentsModule } from './components/components.module';
@@ -41,6 +41,7 @@ import { RegisterComponent } from './register/register.component';
 import { UpdateUserComponent } from './update-user/update-user.component';
 import { TestCompsComponent } from './test-comps/test-comps.component';
 import { UnauthorizedComponent } from './unauthorized/unauthorized.component';
+import { AuthInterceptorProvider, HttpRequestInterceptor } from './services/http.interceptor';
 
 @NgModule({
   imports: [
@@ -100,7 +101,11 @@ import { UnauthorizedComponent } from './unauthorized/unauthorized.component';
 
 
   ],
-  providers: [],
+  providers: [   {
+    provide: HTTP_INTERCEPTORS,
+    useClass: HttpRequestInterceptor,
+    multi: true
+  }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

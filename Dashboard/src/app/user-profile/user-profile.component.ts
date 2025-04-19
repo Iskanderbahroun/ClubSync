@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { User, Sexe } from '../models/user.model';
+import { UserResponse } from '../models/user-response.model';
 import { UserService } from '../services/user.service';
 import { StorageService } from '../services/storage.service';
+import { Role, RoleType } from '../models/role.model';
 
 @Component({
   selector: 'app-user-profile',
@@ -10,10 +12,10 @@ import { StorageService } from '../services/storage.service';
   styleUrls: ['./user-profile.component.css']
 })
 export class UserProfileComponent implements OnInit {
-  currentUser: any = null;
+  currentUser: UserResponse | null = null;
   loading = true;
   error = '';
-  defaultAvatar = 'assets/img/user.png'; // Update this path to match your actual assets
+  defaultAvatar = 'assets/img/user.png';
 
   constructor(
     private userService: UserService,
@@ -22,96 +24,102 @@ export class UserProfileComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    // First try to use the token data
-    const tokenUser = this.userService.user;
-    
-    if (tokenUser) {
-      console.log('Using token user data:', tokenUser);
-      this.currentUser = tokenUser;
-      
-      // If the token data doesn't have all the fields we expect,
-      // we'll try to enrich it with the user info API
-      this.tryEnrichUserData();
-    } else {
-      // If no token data, try to get user info from API
-      this.loadUserData();
-    }
-  }
-
-  tryEnrichUserData() {
-    // Only attempt to get additional data if we already have basic user info
-    this.userService.getUserInfo().subscribe({
-      next: (userData) => {
-        console.log('Enriched user data loaded:', userData);
-        // Merge the new data with existing data
-        this.currentUser = { ...this.currentUser, ...userData };
-        this.loading = false;
-      },
-      error: (err) => {
-        console.warn('Could not load additional user data:', err);
-        // We already have basic user data, so just proceed
-        this.loading = false;
-      }
-    });
+    this.loadUserData();
   }
 
   loadUserData() {
     this.loading = true;
     
-    this.userService.getUserInfo().subscribe({
-      next: (userData) => {
-        console.log('User data loaded:', userData);
-        this.currentUser = userData;
+    // Check for valid token first
+    const token = this.storageService.getToken();
+    if (!token) {
+      this.error = 'No valid authentication token found. Please log in again.';
+      this.loading = false;
+      this.router.navigate(['/login']);
+      return;
+    }
+    
+    // Try to get from storage first
+    const storedUser = this.storageService.getUser();
+    if (storedUser) {
+      try {
+        this.currentUser = new UserResponse(storedUser);
         this.loading = false;
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
+        // Don't set currentUser if there's a parsing error
+        this.loading = false;
+      }
+    }
+
+    // Then get fresh data from API
+    this.userService.getUserInfo().subscribe({
+      next: (userData: any) => {
+        try {
+          this.currentUser = new UserResponse(userData);
+          this.loading = false;
+        } catch (error) {
+          console.error('Error parsing API user data:', error);
+          this.error = 'Error processing user data. Please try again later.';
+          this.loading = false;
+        }
       },
       error: (err) => {
         console.error('Error loading user data:', err);
-        
-        // If we have a token-based user as fallback
-        if (this.userService.user) {
-          this.currentUser = this.userService.user;
-          console.log('Falling back to token data:', this.currentUser);
-          this.loading = false;
-        } else {
+        if (!this.currentUser && storedUser) {
+          // Only use stored data as fallback if parsing didn't fail earlier
+          try {
+            this.currentUser = new UserResponse(storedUser);
+          } catch (error) {
+            this.error = 'Invalid user data. Please log in again.';
+          }
+        } else if (!this.currentUser) {
           this.error = 'Failed to load user data. Please try again later.';
-          this.loading = false;
         }
+        this.loading = false;
       }
     });
   }
 
-  // Helper method to safely access nested properties
-  getProperty(obj: any, path: string, defaultValue: any = 'Not provided'): any {
-    return path.split('.').reduce((o, p) => (o ? o[p] : defaultValue), obj);
+  getRoleName(): string {
+    if (!this.currentUser?.role) return 'Standard User';
+    
+    // Handle both Role object and RoleType string
+    const roleType = typeof this.currentUser.role === 'string' 
+      ? this.currentUser.role 
+      : this.currentUser.role.roleType;
+    
+    return roleType === RoleType.ADMIN ? 'Admin' : 'Standard User';
   }
 
-  // Logout method
+  getGenderDisplay(): string {
+    switch(this.currentUser?.sexe) {
+      case Sexe.HOMME: return 'Male';
+      case Sexe.FEMME: return 'Female';
+      default: return 'Not specified';
+    }
+  }
+
   logout() {
     this.loading = true;
-    
     this.userService.logout().subscribe({
-      next: () => {
-        this.handleLogoutSuccess();
-      },
-      error: (err) => {
-        console.error('Error during logout API call:', err);
-        // Even if the API call fails, we still want to clear local data
-        this.handleLogoutSuccess();
-      }
+      next: () => this.handleLogoutSuccess(),
+      error: () => this.handleLogoutSuccess()
     });
   }
+  onEdit(userId: number): void {
+    
+console.log('USER ID:', userId); // DOIT être un number
 
+if (userId) {
+  this.router.navigate(['/users/edit', userId]);
+} else {
+  console.error('User ID is missing!');
+}
+  }
   private handleLogoutSuccess() {
-    // Clear the token from localStorage
-    localStorage.removeItem(this.userService['TOKEN_NAME']);
     this.storageService.clean();
-    // Update the login state in the service
     this.userService['_isLoggedIn$'].next(false);
-    
-    // Clear the user data from the service
-    this.userService.user = null;
-    
-    // Redirect to login page
     this.router.navigate(['/login']);
   }
 }

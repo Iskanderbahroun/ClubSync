@@ -221,6 +221,10 @@ public class AuthController {
             userInfo.put("email", user.getEmail());
             userInfo.put("nom", user.getNom());
             userInfo.put("prenom", user.getPrenom());
+            userInfo.put("dateNaissance", user.getDateNaissance());
+            userInfo.put("sexe", user.getSexe().name());
+            userInfo.put("numeroDeTelephone", user.getNumeroDeTelephone());
+            userInfo.put("photoProfil", user.getPhotoProfil());
             userInfo.put("role", user.getRole().getRoleType());
 
             return ResponseEntity.ok(userInfo);
@@ -246,13 +250,13 @@ public class AuthController {
         return "Public Content.";
     }
 
-    @GetMapping("/User")
+    @GetMapping("/USER")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<String> getUserContent() {
         return ResponseEntity.ok("User content");
     }
 
-    @GetMapping("/Admin")
+    @GetMapping("/ADMIN")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> getAdminContent() {
         return ResponseEntity.ok("Admin content");

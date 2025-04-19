@@ -4,6 +4,8 @@ import { UserService } from '../services/user.service';
 import { StorageService } from '../services/storage.service';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { RoleType } from '../models/role.model';
+import { User } from '../models/user.model';
 
 declare var google: any;
 
@@ -13,19 +15,16 @@ declare var google: any;
   styleUrls: ['./authentication.component.css']
 })
 export class AuthenticationComponent implements OnInit {
-  // Reactive form data
   form = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
     password: new FormControl('', [Validators.required, Validators.minLength(2)])
   });
-  
-  // Form status flags
+
   isLoggedIn = false;
   isLoginFailed = false;
   isLoading = false;
   errorMessage = '';
-  roles: string[] = [];
-  hidePassword = true; // For password visibility toggle
+  hidePassword = true;
 
   constructor(
     private userService: UserService,
@@ -33,131 +32,111 @@ export class AuthenticationComponent implements OnInit {
     private router: Router,
     private snackBar: MatSnackBar
   ) {}
-  
+
   ngOnInit(): void {
-    // Check if user is already logged in
-    if (this.storageService.getUser()) {
+    const storedUser = this.storageService.getUser();
+    if (storedUser) {
       this.isLoggedIn = true;
-      this.roles = this.storageService.getUser().roles;
-      this.redirectBasedOnRole(this.storageService.getUser().role);
+      this.redirectBasedOnRole(storedUser.role);
     }
 
-    // Initialize Google Sign-In
-    google.accounts.id.initialize({
-      client_id: "376533833455-qgcjilh1un1k0cfunakdab8b328a0p9f.apps.googleusercontent.com",
-      callback: this.handleGoogleSignIn.bind(this)
-    });
-    
-    // Render the Google Sign-In button
-    google.accounts.id.renderButton(
-      document.getElementById("google-btn"),
-      { theme: "outline", size: "large" }
-    );
+    this.initializeGoogleSignIn();
   }
 
-  // Form control getters for easier access in template
   get email() { return this.form.get('email'); }
   get password() { return this.form.get('password'); }
 
-  // Handle Google Sign-In response
-  handleGoogleSignIn(response: any) {
-    // Send the ID token to your backend
-    this.isLoading = true;
-    
-    this.userService.loginWithGoogle(response.credential)
-      .subscribe({
-        next: (userData) => {
-          this.storageService.saveUser(userData);
-          this.isLoggedIn = true;
-          this.isLoginFailed = false;
-          
-          this.snackBar.open('Google login successful!', 'Close', {
-            duration: 3000,
-            horizontalPosition: 'center',
-            verticalPosition: 'top',
-            panelClass: ['success-snackbar']
-          });
-          
-          this.redirectBasedOnRole(userData.role);
-        },
-        error: (error) => {
-          this.isLoginFailed = true;
-          this.isLoading = false;
-          this.errorMessage = error?.error?.message || 'Google authentication failed';
-          
-          this.snackBar.open(this.errorMessage, 'Close', {
-            duration: 5000,
-            horizontalPosition: 'center',
-            verticalPosition: 'top',
-            panelClass: ['error-snackbar']
-          });
-        }
+  private initializeGoogleSignIn(): void {
+    if (typeof google !== 'undefined') {
+      google.accounts.id.initialize({
+        client_id: '376533833455-qgcjilh1un1k0cfunakdab8b328a0p9f.apps.googleusercontent.com',
+        callback: (response: any) => this.handleGoogleSignIn(response)
       });
+
+      google.accounts.id.renderButton(
+        document.getElementById('google-btn'),
+        { theme: 'outline', size: 'large' }
+      );
+    }
   }
 
-  submitForm() {
+  handleGoogleSignIn(response: any): void {
+    this.isLoading = true;
+
+    this.userService.loginWithGoogle(response.credential).subscribe({
+      next: (res) => this.handleLoginSuccess(res),
+      error: (error) => this.handleLoginError(error)
+    });
+  }
+
+  submitForm(): void {
     if (this.form.invalid) {
-      // Mark all fields as touched to trigger validation messages
       this.form.markAllAsTouched();
       return;
     }
-    
+
     this.isLoading = true;
-  
-    this.userService
-      .login({ 
-        email: this.form.get('email')?.value, 
-        password: this.form.get('password')?.value 
-      })
-      .subscribe({
-        next: (response) => {
-          // Assuming response contains a user object with a 'role' property
-          const userRole = response.role; // Adjust based on your API response
-      
-          // Save user role or other necessary info to the storage
-          this.storageService.saveUser(response);
-          
-          this.isLoggedIn = true;
-          this.isLoginFailed = false;
-          
-          // Show success message
-          this.snackBar.open('Login successful!', 'Close', {
-            duration: 3000,
-            horizontalPosition: 'center',
-            verticalPosition: 'top',
-            panelClass: ['success-snackbar']
-          });
-          
-          this.redirectBasedOnRole(userRole);
-        },
-        error: (error) => {
-          // Handle login failure
-          this.isLoginFailed = true;
-          this.isLoading = false;
-          this.errorMessage = error?.error?.message || 'Invalid credentials';
-          
-          // Show error message
-          this.snackBar.open(this.errorMessage, 'Close', {
-            duration: 5000,
-            horizontalPosition: 'center',
-            verticalPosition: 'top',
-            panelClass: ['error-snackbar']
-          });
-        }
-      });
+
+    this.userService.login({
+      email: this.email?.value || '',
+      password: this.password?.value || ''
+    }).subscribe({
+      next: (res) => this.handleLoginSuccess(res),
+      error: (error) => this.handleLoginError(error)
+    });
   }
-  
-  redirectBasedOnRole(role: string) {
-    if (role === 'Admin') {
-      console.log('Admin role detected');
-      this.router.navigate(['dashboard']);
-    } else if (role === 'User') {
-      console.log('User role detected');
+
+  private handleLoginSuccess(response: any): void {
+    const user: User = {
+      email: response.email,
+      nom: response.nom,
+      prenom: response.prenom,
+      sexe: response.gender,
+      dateNaissance: new Date(response.birthDate),
+      role: response.role
+    };
+
+    this.storageService.saveAuthData({
+      token: response.token,
+      user: user
+    });
+
+    this.isLoggedIn = true;
+    this.isLoginFailed = false;
+    this.isLoading = false;
+
+    this.showSnackbar('Login successful!', 'success-snackbar');
+    this.redirectBasedOnRole(user.role);
+  }
+
+  private handleLoginError(error: any): void {
+    this.isLoginFailed = true;
+    this.isLoading = false;
+    this.errorMessage = error?.error?.message || error?.message || 'Authentication failed. Please try again.';
+    this.showSnackbar(this.errorMessage, 'error-snackbar');
+  }
+
+  private showSnackbar(message: string, panelClass: string): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 5000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+      panelClass: [panelClass]
+    });
+  }
+
+  redirectBasedOnRole(role: any): void {
+    const roleString = typeof role === 'object' && 'roleType' in role ? role.roleType : role;
+    console.log('Redirecting based on role:', roleString);
+
+    if (roleString === RoleType.ADMIN || roleString === 'ADMIN') {
+      this.router.navigate(['/dashboard']);
+    } else {
       this.router.navigate(['/front']);
     }
   }
-  
-  navigateToRegister() {
+
+  navigateToRegister(): void {
     this.router.navigate(['/register']);
   }
 }

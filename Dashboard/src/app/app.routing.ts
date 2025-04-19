@@ -18,6 +18,7 @@ import { TestCompsComponent } from './test-comps/test-comps.component';
 import { UnauthorizedComponent } from './unauthorized/unauthorized.component';
 import { IsAuthenticatedGuard } from './guards/is-authenticated.guard';
 import { HasRoleGuard } from './guards/has-role.guard';
+import { UpdateUserComponent } from './update-user/update-user.component';
 
 const routes: Routes = [
   // Default route redirects to login
@@ -40,6 +41,7 @@ const routes: Routes = [
     component: UnauthorizedComponent,
     
   },
+     { path: 'users/edit/:id', component: UpdateUserComponent },
   // Front layout and its child routes
   {
     path: 'front',
