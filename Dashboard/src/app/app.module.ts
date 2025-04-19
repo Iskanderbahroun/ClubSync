@@ -14,6 +14,7 @@ import { ServicesComponent } from './pages/services/services.component';
 import { BlogComponent } from './pages/blog/blog.component';
 import { ScheduleComponent } from './pages/schedule/schedule.component';
 import { FromComponent } from './pages/from/from.component';
+import { SettingsComponent } from './pages/setting/setting.component';
 import { ClubListComponent } from './club-list/club-list.component';
 import { AddClubDialogComponent } from './add-club-dialog/add-club-dialog.component';
 // Import Angular Material modules
@@ -99,6 +100,7 @@ import { ClickOutsideDirective } from './click-outside.directive';
     TestCompsComponent,
     UnauthorizedComponent,
     ClickOutsideDirective,
+    SettingsComponent,
     
 
 
