@@ -1,0 +1,305 @@
+<!-- ? Preloader Start -->
+<div id="preloader-active">
+    <div class="preloader d-flex align-items-center justify-content-center">
+      <div class="preloader-inner position-relative">
+        <div class="preloader-circle"></div>
+        <div class="preloader-img pere-text">
+          <img src="assets/img/logo/loder.png" alt="Loading Logo">
+          <p>Loading...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Preloader End -->
+  
+  <!-- Header Start -->
+  <header>
+    <div class="header-area header-transparent">
+      <div class="main-header header-sticky">
+        <div class="container-fluid">
+          <div class="row align-items-center">
+            <!-- Logo -->
+            <div class="col-xl-2 col-lg-2 col-md-1">
+              <div class="logo">
+                <a routerLink="/front"><img src="assets/img/logo/logo.png" alt="Main Logo"></a>
+              </div>
+            </div>
+            <div class="col-xl-10 col-lg-10 col-md-10">
+              <div class="menu-main d-flex align-items-center justify-content-end">
+                <!-- Main-menu -->
+                <div class="main-menu f-right d-none d-lg-block">
+                  <nav>
+                    <ul id="navigation">
+                      <li><a routerLink="/front">Home</a></li>
+                      <li><a routerLink="/front/about">About</a></li>
+                      <li><a routerLink="/front/services">Services</a></li>
+                      <li><a routerLink="/front/schedule">Schedule</a></li>
+                      <li><a routerLink="/front/reclamationform">Reclamation</a></li>
+                      <li><a routerLink="/front/clubs">Clubs</a></li>
+                      <li>
+                        <a routerLink="/front/blog">Blog</a>
+                        <ul class="submenu">
+                          <li><a routerLink="/front/blog">Blog</a></li>
+                          <li><a routerLink="/front/blog-details">Blog Details</a></li>
+                          <li><a routerLink="/front/elements">Elements</a></li>
+                        </ul>
+                      </li>
+                      <li><a routerLink="/front/contact">Contact</a></li>
+                    </ul>
+                  </nav>
+                </div>
+  
+                <div *ngIf="isLoggedIn" class="user-dropdown-container" style="position: relative; margin-left: 20px;">
+                    <div class="user-icon" (click)="toggleDropdown($event)" style="border: 2px solid white; box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 50%; background-color: #fff; color: #333; cursor: pointer;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="dropdown-menu" [class.show]="showDropdown" style="position: absolute; top: 120%; right: 0; background: white; border: 1px solid #ddd; box-shadow: 0 4px 6px rgba(0,0,0,0.1); min-width: 180px; z-index: 1000;">
+                        <div class="dropdown-email" style="padding: 10px; font-weight: bold; border-bottom: 1px solid #eee;">{{ userEmail }}</div>
+                        <div class="dropdown-divider" style="height: 1px; background: #eee;"></div>
+                        <a class="dropdown-item" (click)="navigateToSettings()" style="display: block; padding: 10px; color: #333; text-decoration: none;">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        <a class="dropdown-item" (click)="logout()" style="display: block; padding: 10px; color: #333; text-decoration: none;">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+                <div *ngIf="!isLoggedIn" class="login-button">
+                  <a routerLink="/login" class="btn">Login</a>
+                </div>
+                </div>
+                </div>
+            <!-- Mobile Menu -->
+            <div class="col-12">
+              <div class="mobile_menu d-block d-lg-none"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+  <!-- Header End -->
+  
+  <!-- Main content for About page -->
+  <main>
+    <!--? Hero Start -->
+    <div class="slider-area2">
+      <div class="slider-height2 d-flex align-items-center">
+        <div class="container">
+          <div class="row">
+            <div class="col-xl-12">
+              <div class="hero-cap hero-cap2 text-center pt-70">
+                <h2>About Us</h2>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Hero End -->
+  
+    <!--? About Area Start -->
+    <section class="about-area section-padding30">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-lg-6 col-md-12">
+            <div class="about-img">
+              <img src="assets/img/gallery/about.png" alt="About Image">
+            </div>
+          </div>
+          <div class="col-lg-6 col-md-12">
+            <div class="about-caption">
+              <div class="section-tittle section-tittle3 mb-35">
+                <span>ABOUT OUR CLUB</span>
+                <h2>Safe Fitness Center with Equipment for All Levels</h2>
+              </div>
+              <p class="pera-top">
+                Brook presents your services with flexible, convenient, and customizable layouts.
+                You can select your favorite layouts & elements for particular uses with unlimited possibilities.
+              </p>
+              <p class="mb-65 pera-bottom">
+                Consulting represents success when realizing the company is moving in the wrong direction.
+                We help companies pivot into more profitable directions where they can expand and grow.
+              </p>
+              <a routerLink="/front/join" class="btn">Join Club Together</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- About Area End -->
+  
+    <!--? Services Area Start -->
+    <section class="services-area pt-100 pb-150">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="single-cat single-cat2 text-center mb-50">
+              <div class="cat-icon">
+                <i class="flaticon-fitness"></i>
+              </div>
+              <div class="cat-cap">
+                <h5><a routerLink="/front/services">QUALITY EQUIPMENT</a></h5>
+                <p>We spend time understanding your needs and selecting the best equipment for your goals.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="single-cat single-cat2 text-center mb-50">
+              <div class="cat-icon">
+                <i class="flaticon-healthcare-and-medical"></i>
+              </div>
+              <div class="cat-cap">
+                <h5><a routerLink="/front/services">HEALTH CARE</a></h5>
+                <p>Our trainers and programs prioritize your health with expert care and advice.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="single-cat single-cat2 text-center mb-50">
+              <div class="cat-icon">
+                <i class="flaticon-clock"></i>
+              </div>
+              <div class="cat-cap">
+                <h5><a routerLink="/front/services">GYM STRATEGIES</a></h5>
+                <p>We offer personalized strategies to help you achieve your fitness goals effectively and safely.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Services Area End -->
+  
+    <!--? About-2 Area Start -->
+    <section class="about-area2 testimonial-area section-padding30 fix">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-lg-5 col-md-11 col-sm-11">
+            <div class="about-img2">
+              <img src="assets/img/gallery/about2.png" alt="Clients Feedback">
+              <div class="shape-qutaion d-none d-sm-block">
+                <img src="assets/img/gallery/qutaion.png" alt="Quotation Shape">
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6 col-md-9 col-sm-9">
+            <div class="about-caption">
+              <div class="section-tittle mb-55">
+                <span>Client Feedback</span>
+                <h2>What Our Clients Think About Our Gym</h2>
+              </div>
+              <div class="h1-testimonial-active">
+                <div class="single-testimonial">
+                  <div class="testimonial-caption">
+                    <p>"This gym helped me transform my fitness journey. Amazing facilities and trainers!"</p>
+                    <div class="rattiong-caption">
+                      <span>John Doe<span>Member</span></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="single-testimonial">
+                  <div class="testimonial-caption">
+                    <p>"An outstanding place with professional coaching and a welcoming environment."</p>
+                    <div class="rattiong-caption">
+                      <span>Jane Smith<span>Member</span></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- About-2 Area End -->
+  </main>
+  
+  <!-- Footer Start -->
+  <footer>
+    <div class="footer-area section-bg" data-background="assets/img/gallery/section_bg03.png">
+      <div class="container">
+        <div class="footer-top footer-padding">
+          <div class="row d-flex justify-content-between">
+            <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6">
+              <div class="single-footer-caption mb-50">
+                <div class="footer-tittle">
+                  <h4>COMPANY</h4>
+                  <ul>
+                    <li><a routerLink="/front/about">About Us</a></li>
+                    <li><a routerLink="/front/company">Company</a></li>
+                    <li><a routerLink="/front/blog">Press & Blog</a></li>
+                    <li><a routerLink="/front/privacy-policy">Privacy Policy</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="col-xl-3 col-lg-3 col-md-4 col-sm-6">
+              <div class="single-footer-caption mb-50">
+                <div class="footer-tittle">
+                  <h4>OPEN HOURS</h4>
+                  <ul>
+                    <li>Monday 11am-7pm</li>
+                    <li>Tuesday-Friday 11am-8pm</li>
+                    <li>Saturday 10am-6pm</li>
+                    <li>Sunday 11am-6pm</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+              <div class="single-footer-caption mb-50">
+                <div class="footer-tittle">
+                  <h4>RESOURCES</h4>
+                  <ul>
+                    <li><a href="#">Home Insurance</a></li>
+                    <li><a href="#">Travel Insurance</a></li>
+                    <li><a href="#">Car Insurance</a></li>
+                    <li><a href="#">Business Insurance</a></li>
+                    <li><a href="#">Health Insurance</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="col-xl-3 col-lg-4 col-md-5 col-sm-6">
+              <div class="single-footer-caption mb-50">
+                <div class="footer-logo">
+                  <a routerLink="/front"><img src="assets/img/logo/logo2_footer.png" alt="Footer Logo"></a>
+                </div>
+                <div class="footer-tittle">
+                  <p class="info1">Stay strong, stay fit, and make your health your priority with us!</p>
+                </div>
+                <div class="footer-social">
+                  <a href="#"><i class="fab fa-facebook-f"></i></a>
+                  <a href="#"><i class="fab fa-twitter"></i></a>
+                  <a href="#"><i class="fas fa-globe"></i></a>
+                  <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+  
+        <div class="footer-bottom">
+          <div class="row d-flex align-items-center">
+            <div class="col-lg-12">
+              <div class="footer-copy-right text-center">
+                <p>Copyright © <script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with 
+                  <i class="fa fa-heart" aria-hidden="true"></i> by 
+                  <a href="https://colorlib.com" target="_blank" rel="noopener">Colorlib</a>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+  
+      </div>
+    </div>
+  </footer>
+  <!-- Footer End -->
+  
+  <!-- Scroll Up -->
+  <div id="back-top">
+    <a title="Go to Top" href="#"><i class="fas fa-level-up-alt"></i></a>
+  </div>
+  
